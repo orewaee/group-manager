@@ -1,0 +1,13 @@
+version: "2"
+sql:
+  - engine: postgresql
+    queries: "queries"
+    schema: "migrations"
+    gen:
+      go:
+        package: "db"
+        out: "internal/infra/postgres/db"
+        rename:
+          id: "Id"
+          parent_id: "ParentId"
+          group_id: "GroupId"
