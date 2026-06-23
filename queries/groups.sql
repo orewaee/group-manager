@@ -1,7 +1,7 @@
--- name: FindById :one
+-- name: SelectGroupById :one
 SELECT * FROM groups
 WHERE id = $1;
 
--- name: FindByName :one
+-- name: SelectGroupByName :one
 SELECT * FROM groups
 WHERE name = $1;

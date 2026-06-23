@@ -7,6 +7,9 @@ COMPOSE_CMD := "docker compose -f " + COMPOSE_FILE + " -p " + PROJECT_NAME + " -
 sqlc:
     sqlc generate
 
+api:
+    go run cmd/api/main.go
+
 up:
     {{ COMPOSE_CMD }} up -d
 
