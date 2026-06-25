@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,12 +13,14 @@ import (
 	"github.com/orewaee/group-manager/internal/infra/snowflake"
 	"github.com/orewaee/group-manager/internal/usecase/group"
 	"github.com/orewaee/group-manager/internal/usecase/people"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	ctx := context.Background()
-
-	conn, err := pgx.Connect(ctx, "user=group_manager dbname=group_manager sslmode=disable")
+	conn, err := pgx.Connect(ctx, "host=localhost port=5432 user=group_manager password=supersecret dbname=group_manager sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -38,11 +39,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		if err := server.Start(); err != nil {
-			panic(err)
-		}
-	}()
+	go server.Start()
 
 	<-quit
 
@@ -50,6 +47,6 @@ func main() {
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal("forced shutdown:", err)
+		log.Fatal().Err(err).Msg("forced shutdown")
 	}
 }

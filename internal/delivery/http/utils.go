@@ -24,7 +24,7 @@ func read[T any](r *http.Request) (T, error) {
 	return entity, nil
 }
 
-func writeJSON(w http.ResponseWriter, code int, dto any) {
+func writeJson(w http.ResponseWriter, code int, dto any) {
 	data, err := json.Marshal(dto)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -34,4 +34,10 @@ func writeJSON(w http.ResponseWriter, code int, dto any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(data)
+}
+
+func writeError(w http.ResponseWriter, code int, message string) {
+	writeJson(w, code, &ErrorResponse{
+		Message: message,
+	})
 }

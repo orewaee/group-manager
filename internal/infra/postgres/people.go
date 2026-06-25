@@ -2,8 +2,10 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/orewaee/group-manager/internal/entity"
 	"github.com/orewaee/group-manager/internal/infra/postgres/db"
@@ -11,6 +13,7 @@ import (
 )
 
 type postgresPeopleRepo struct {
+	conn    *pgx.Conn
 	queries *db.Queries
 }
 
@@ -54,39 +57,72 @@ func (p *postgresPeopleRepo) FindByGroupId(ctx context.Context, groupId entity.I
 }
 
 func (p *postgresPeopleRepo) Save(ctx context.Context, person *entity.Person) error {
-	params := db.InsertPersonParams{
-		Id:        person.Id,
-		Firstname: person.Firstname,
-		Lastname:  person.Lastname,
-		Birthday: pgtype.Date{
-			Time: person.Birthday,
-		},
-		GroupId: person.GroupId,
-	}
+	return withTx(ctx, p.conn, func(queries *db.Queries) error {
+		_, err := queries.SelectGroupById(ctx, person.GroupId)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.ErrGroupNotFound
+		}
 
-	if err := p.queries.InsertPerson(ctx, params); err != nil {
-		return fmt.Errorf("save person: %w", err)
-	}
+		if err != nil {
+			return fmt.Errorf("select group by id: %w", err)
+		}
 
-	return nil
+		params := db.InsertPersonParams{
+			Id:        person.Id,
+			Firstname: person.Firstname,
+			Lastname:  person.Lastname,
+			Birthday: pgtype.Date{
+				Time:  person.Birthday,
+				Valid: true,
+			},
+			GroupId: person.GroupId,
+		}
+
+		if err := queries.InsertPerson(ctx, params); err != nil {
+			return fmt.Errorf("insert person: %w", err)
+		}
+
+		return nil
+	})
 }
 
 func (p *postgresPeopleRepo) Update(ctx context.Context, person *entity.Person) error {
-	params := db.UpdatePersonParams{
-		Id:        person.Id,
-		Firstname: person.Firstname,
-		Lastname:  person.Lastname,
-		Birthday: pgtype.Date{
-			Time: person.Birthday,
-		},
-		GroupId: person.GroupId,
-	}
+	return withTx(ctx, p.conn, func(queries *db.Queries) error {
+		_, err := queries.SelectPersonById(ctx, person.Id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.ErrPersonNotFound
+		}
 
-	if err := p.queries.UpdatePerson(ctx, params); err != nil {
-		return fmt.Errorf("update person: %w", err)
-	}
+		if err != nil {
+			return fmt.Errorf("select person by id: %w", err)
+		}
 
-	return nil
+		_, err = queries.SelectGroupById(ctx, person.GroupId)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.ErrGroupNotFound
+		}
+
+		if err != nil {
+			return fmt.Errorf("select group by id: %w", err)
+		}
+
+		params := db.UpdatePersonParams{
+			Id:        person.Id,
+			Firstname: person.Firstname,
+			Lastname:  person.Lastname,
+			Birthday: pgtype.Date{
+				Time:  person.Birthday,
+				Valid: true,
+			},
+			GroupId: person.GroupId,
+		}
+
+		if err := queries.UpdatePerson(ctx, params); err != nil {
+			return fmt.Errorf("update person: %w", err)
+		}
+
+		return nil
+	})
 }
 
 func (p *postgresPeopleRepo) Delete(ctx context.Context, id entity.Id) error {
@@ -97,8 +133,9 @@ func (p *postgresPeopleRepo) Delete(ctx context.Context, id entity.Id) error {
 	return nil
 }
 
-func NewPeopleRepo(conn db.DBTX) people.Repo {
+func NewPeopleRepo(conn *pgx.Conn) people.Repo {
 	return &postgresPeopleRepo{
 		queries: db.New(conn),
+		conn:    conn,
 	}
 }
