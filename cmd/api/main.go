@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	stdhttp "net/http"
 	"os"
 	"os/signal"
@@ -18,10 +19,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const shutdownTimeout = 30 * time.Second
+
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, "host=localhost port=5432 user=group_manager password=supersecret dbname=group_manager sslmode=disable")
+
+	conn, err := pgx.Connect(ctx,
+		"host=localhost port=5432 user=group_manager password=supersecret dbname=group_manager sslmode=disable",
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -48,17 +55,21 @@ func main() {
 
 	go func() {
 		err := server.Start()
-		if err != nil && err != stdhttp.ErrServerClosed {
-			log.Fatal().Err(err).Msg("server failed")
+		if err != nil && !errors.Is(err, stdhttp.ErrServerClosed) {
+			log.Error().Err(err).Msg("server failed")
+			os.Exit(1)
 		}
 	}()
 
 	<-quit
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
+	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, shutdownTimeout)
 
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal().Err(err).Msg("forced shutdown")
+	errShutdown := server.Shutdown(shutdownCtx)
+
+	shutdownCancel()
+
+	if errShutdown != nil {
+		log.Error().Err(errShutdown).Msg("forced shutdown")
 	}
 }

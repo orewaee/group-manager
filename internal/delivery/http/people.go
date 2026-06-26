@@ -16,6 +16,7 @@ func (h *Handler) CreatePerson(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to read request")
+
 		return
 	}
 
@@ -29,12 +30,14 @@ func (h *Handler) CreatePerson(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, entity.ErrGroupNotFound) {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusBadRequest, "group not found")
+
 		return
 	}
 
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to create person")
+
 		return
 	}
 
@@ -58,6 +61,7 @@ func (h *Handler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to read request")
+
 		return
 	}
 
@@ -72,18 +76,21 @@ func (h *Handler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, entity.ErrPersonNotFound) {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusBadRequest, "person not found")
+
 		return
 	}
 
 	if errors.Is(err, entity.ErrGroupNotFound) {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusBadRequest, "group not found")
+
 		return
 	}
 
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to update person")
+
 		return
 	}
 
@@ -104,9 +111,11 @@ func (h *Handler) UpdatePerson(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) DeletePerson(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
+
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
+
 		return
 	}
 
@@ -114,6 +123,7 @@ func (h *Handler) DeletePerson(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to delete person")
+
 		return
 	}
 

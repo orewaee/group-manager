@@ -83,6 +83,7 @@ func (p *postgresGroupRepo) FindChildren(ctx context.Context, parentId entity.Id
 
 func (p *postgresGroupRepo) CountMembers(ctx context.Context, id entity.Id, deep bool) (int, error) {
 	var count int64
+
 	var err error
 
 	if deep {

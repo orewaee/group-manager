@@ -16,10 +16,11 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to read request")
+
 		return
 	}
 
-	group, err := h.groupApi.Create(r.Context(), group.CreateCmd{
+	grp, err := h.groupApi.Create(r.Context(), group.CreateCmd{
 		ParentId: data.ParentId,
 		Name:     data.Name,
 	})
@@ -27,23 +28,25 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, entity.ErrGroupNotFound) {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusBadRequest, "parent group not found")
+
 		return
 	}
 
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to create group")
+
 		return
 	}
 
 	log.Debug().
-		Int64("id", group.Id).
+		Int64("id", grp.Id).
 		Msg("group created")
 
 	writeJson(w, http.StatusCreated, &Group{
-		Id:       group.Id,
-		ParentId: group.ParentId,
-		Name:     group.Name,
+		Id:       grp.Id,
+		ParentId: grp.ParentId,
+		Name:     grp.Name,
 	})
 }
 
@@ -52,10 +55,11 @@ func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to read request")
+
 		return
 	}
 
-	group, err := h.groupApi.Update(r.Context(), group.UpdateCmd{
+	grp, err := h.groupApi.Update(r.Context(), group.UpdateCmd{
 		Id:       data.Id,
 		ParentId: data.ParentId,
 		Name:     data.Name,
@@ -64,31 +68,35 @@ func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, entity.ErrGroupNotFound) {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusBadRequest, "group not found")
+
 		return
 	}
 
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to update group")
+
 		return
 	}
 
 	log.Debug().
-		Int64("id", group.Id).
+		Int64("id", grp.Id).
 		Msg("group updated")
 
 	writeJson(w, http.StatusOK, &Group{
-		Id:       group.Id,
-		ParentId: group.ParentId,
-		Name:     group.Name,
+		Id:       grp.Id,
+		ParentId: grp.ParentId,
+		Name:     grp.Name,
 	})
 }
 
 func (h *Handler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
+
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
+
 		return
 	}
 
@@ -96,6 +104,7 @@ func (h *Handler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to delete group")
+
 		return
 	}
 
@@ -111,6 +120,7 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to list groups")
+
 		return
 	}
 
@@ -120,6 +130,7 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error().Err(err).Send()
 			writeError(w, http.StatusInternalServerError, "failed to count members")
+
 			return
 		}
 
@@ -127,6 +138,7 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error().Err(err).Send()
 			writeError(w, http.StatusInternalServerError, "failed to count members")
+
 			return
 		}
 
@@ -144,17 +156,21 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetGroupMembers(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
+
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
+
 		return
 	}
 
 	deep := r.URL.Query().Get("deep") == "true"
+
 	members, err := h.groupApi.Members(r.Context(), group.MembersCmd{Id: id, Deep: deep})
 	if err != nil {
 		log.Error().Err(err).Send()
 		writeError(w, http.StatusInternalServerError, "failed to get members")
+
 		return
 	}
 

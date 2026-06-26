@@ -1,0 +1,11 @@
+version: "2"
+linters:
+  enable:
+    - bodyclose
+    - gocritic
+    - lll
+    - mnd
+    - nlreturn
+    - wrapcheck
+    - wsl_v5
+    - zerologlint

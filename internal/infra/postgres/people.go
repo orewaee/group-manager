@@ -34,8 +34,13 @@ func (p *postgresPeopleRepo) FindById(ctx context.Context, id entity.Id) (*entit
 	}, nil
 }
 
-func (p *postgresPeopleRepo) FindByGroupId(ctx context.Context, groupId entity.Id, deep bool) ([]*entity.Person, error) {
+func (p *postgresPeopleRepo) FindByGroupId(
+	ctx context.Context,
+	groupId entity.Id,
+	deep bool,
+) ([]*entity.Person, error) {
 	var people []db.Person
+
 	var err error
 
 	if deep {
