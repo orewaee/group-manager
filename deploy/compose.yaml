@@ -18,6 +18,8 @@ services:
       context: ..
       dockerfile: Dockerfile
     container_name: group_manager_api
+    environment:
+      GM_POSTGRES__CONN_STRING: "host=postgres port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable"
     ports:
       - "50000:50000"
     networks:

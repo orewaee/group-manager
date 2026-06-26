@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
@@ -58,9 +59,10 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("load defaults: %w", err)
 	}
 
-	path := "config/config.yaml"
-	if err := k.Load(file.Provider(path), yaml.Parser()); err != nil {
-		return nil, fmt.Errorf("load config file: %w", err)
+	if _, err := os.Stat("config/config.yaml"); err == nil {
+		if err := k.Load(file.Provider("config/config.yaml"), yaml.Parser()); err != nil {
+			return nil, fmt.Errorf("load config file: %w", err)
+		}
 	}
 
 	if err := k.Load(env.Provider("GM_", ".", func(s string) string {
