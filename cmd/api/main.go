@@ -29,8 +29,9 @@ func main() {
 
 	idProvider := snowflake.NewIdProvider(1)
 	peopleRepo := postgres.NewPeopleRepo(conn)
+	groupRepo := postgres.NewGroupRepo(conn)
 	peopleApi := people.New(idProvider, peopleRepo)
-	groupApi := group.New()
+	groupApi := group.New(idProvider, groupRepo, peopleRepo)
 
 	handler := http.NewHander(peopleApi, groupApi)
 	router := http.NewRouter(handler)

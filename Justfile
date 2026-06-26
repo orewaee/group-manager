@@ -7,6 +7,9 @@ COMPOSE_CMD := "docker compose -f " + COMPOSE_FILE + " -p " + PROJECT_NAME + " -
 sqlc:
     sqlc generate
 
+postgres:
+    docker exec -it group_manager_postgres psql --username group_manager
+
 api:
     go run cmd/api/main.go
 

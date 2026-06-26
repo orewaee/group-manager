@@ -18,7 +18,7 @@ type DeleteCmd struct {
 }
 
 type CountCmd struct {
-	Id   entity.Id `json:"Id"`
+	Id   entity.Id `json:"id"`
 	Deep bool      `json:"deep"`
 }
 

@@ -35,7 +35,15 @@ func (p *postgresPeopleRepo) FindById(ctx context.Context, id entity.Id) (*entit
 }
 
 func (p *postgresPeopleRepo) FindByGroupId(ctx context.Context, groupId entity.Id, deep bool) ([]*entity.Person, error) {
-	people, err := p.queries.SelectPersonByGroupId(ctx, groupId)
+	var people []db.Person
+	var err error
+
+	if deep {
+		people, err = p.queries.DeepSelectPersonByGroupId(ctx, groupId)
+	} else {
+		people, err = p.queries.SelectPersonByGroupId(ctx, groupId)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("find people: %w", err)
 	}

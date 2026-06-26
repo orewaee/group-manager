@@ -35,7 +35,7 @@ func (s *service) Create(ctx context.Context, cmd CreateCmd) (*entity.Person, er
 
 func (s *service) Update(ctx context.Context, cmd UpdateCmd) (*entity.Person, error) {
 	person := &entity.Person{
-		Id:        s.idProvider.Generate(),
+		Id:        cmd.Id,
 		GroupId:   cmd.GroupId,
 		Firstname: cmd.Firstname,
 		Lastname:  cmd.Lastname,
