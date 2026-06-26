@@ -6,27 +6,26 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/orewaee/group-manager/internal/config"
 	"github.com/rs/zerolog/log"
-)
-
-const (
-	readTimeout  = 5 * time.Second
-	writeTimeout = 10 * time.Second
-	idleTimeout  = 60 * time.Second
 )
 
 type Server struct {
 	httpServer *http.Server
+	config     *config.Config
 }
 
-func NewServer(addr string, router http.Handler) *Server {
+func NewServer(cfg *config.Config, router http.Handler) *Server {
+	addr := fmt.Sprintf("%s:%d", cfg.Http.Host, cfg.Http.Port)
+
 	return &Server{
+		config: cfg,
 		httpServer: &http.Server{
 			Addr:         addr,
 			Handler:      router,
-			ReadTimeout:  readTimeout,
-			WriteTimeout: writeTimeout,
-			IdleTimeout:  idleTimeout,
+			ReadTimeout:  time.Duration(cfg.Http.ReadTimeout) * time.Second,
+			WriteTimeout: time.Duration(cfg.Http.WriteTimeout) * time.Second,
+			IdleTimeout:  time.Duration(cfg.Http.IdleTimeout) * time.Second,
 		},
 	}
 }

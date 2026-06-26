@@ -10,8 +10,14 @@ sqlc:
 postgres:
     docker exec -it group_manager_postgres psql --username group_manager
 
+build:
+    docker build -t group-manager:1.0.0 -f Dockerfile .
+
 api:
     go run cmd/api/main.go
+
+lint:
+    golangci-lint run
 
 up:
     {{ COMPOSE_CMD }} up -d

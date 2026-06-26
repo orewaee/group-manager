@@ -11,6 +11,19 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+    networks:
+      - database_network
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: group_manager_api
+    ports:
+      - "50000:50000"
+    networks:
+      - database_network
 volumes:
   postgres_data:
     driver: local
+networks:
+  database_network:
