@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	stdhttp "net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,7 +26,12 @@ func main() {
 		panic(err)
 	}
 
-	defer conn.Close(ctx)
+	defer func() {
+		err := conn.Close(context.Background())
+		if err != nil {
+			log.Error().Err(err).Msg("failed to close db connection")
+		}
+	}()
 
 	idProvider := snowflake.NewIdProvider(1)
 	peopleRepo := postgres.NewPeopleRepo(conn)
@@ -40,7 +46,12 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	go server.Start()
+	go func() {
+		err := server.Start()
+		if err != nil && err != stdhttp.ErrServerClosed {
+			log.Fatal().Err(err).Msg("server failed")
+		}
+	}()
 
 	<-quit
 

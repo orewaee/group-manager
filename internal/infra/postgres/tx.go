@@ -16,13 +16,17 @@ func withTx(ctx context.Context, conn *pgx.Conn, fn txFunc) error {
 		return fmt.Errorf("begin tx: %w", err)
 	}
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		}
+	}()
 
-	if err := fn(db.New(tx)); err != nil {
+	if err = fn(db.New(tx)); err != nil {
 		return err
 	}
 
-	if err := tx.Commit(ctx); err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit tx: %w", err)
 	}
 

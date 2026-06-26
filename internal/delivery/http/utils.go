@@ -33,7 +33,7 @@ func writeJson(w http.ResponseWriter, code int, dto any) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 func writeError(w http.ResponseWriter, code int, message string) {
